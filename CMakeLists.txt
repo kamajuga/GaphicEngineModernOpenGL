@@ -13,7 +13,7 @@ endif()
 
 project(ProjetModernOpenGL)
 
-set(CMAKE_CXX_STANDARD 11)				
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(EXE_NAME Core)
