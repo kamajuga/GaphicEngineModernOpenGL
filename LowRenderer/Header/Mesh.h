@@ -1,4 +1,4 @@
-#pragma once
+	#pragma once
 
 #ifndef __glad_h_
 #include "glad/glad.h"
@@ -26,6 +26,11 @@ public:
 		m_modelMatrix = modelMatrix;
 	}
 
+	LibMath::Matrix4 getModelMatrix(void) const
+	{
+		return m_modelMatrix;
+	}
+
 	void draw(Shader& shader, LibMath::Matrix4 VPMatrix);
 	
 	void uploadModelMatrixToGPU(GLuint shaderProgram, const std::string& uniformName);
@@ -47,6 +52,8 @@ public:
 		return m_model;
 	}
 
+	std::vector<Vertex>& getModelVertices(void) { return m_model->getVertices(); };
+	std::vector<uint32_t>& getModelIndices(void) { return m_model->getIndices(); };
 
 	~Mesh() = default;
 

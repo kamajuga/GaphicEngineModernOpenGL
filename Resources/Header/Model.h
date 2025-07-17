@@ -90,6 +90,9 @@ public:
     private:
     };
 
+    std::vector<Vertex>& getVertices(void) { return m_vertices; };
+    std::vector<uint32_t>& getIndices(void) { return m_indices; };
+
     ~Model();
 
     GLuint m_VAO;

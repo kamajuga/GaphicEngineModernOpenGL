@@ -4,15 +4,15 @@ void Material::uploadMaterialToGPU(GLuint shaderProgram, const std::string& unif
 {
 	GLint loc = glGetUniformLocation(shaderProgram, "material.ambient");
 	if (loc != -1)
-		glUniform4f(loc, m_ambient.getX(), m_ambient.getY(), m_ambient.getZ(), m_ambient.getK());
+		glUniform4f(loc, m_ambient.m_x, m_ambient.m_y, m_ambient.m_z, m_ambient.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, "material.diffuse");
 	if (loc != -1)
-		glUniform4f(loc, m_diffuse.getX(), m_diffuse.getY(), m_diffuse.getZ(), m_diffuse.getK());
+		glUniform4f(loc, m_diffuse.m_x, m_diffuse.m_y, m_diffuse.m_z, m_diffuse.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, "material.specular");
 	if (loc != -1)
-		glUniform4f(loc, m_specular.getX(), m_specular.getY(), m_specular.getZ(), m_specular.getK());
+		glUniform4f(loc, m_specular.m_x, m_specular.m_y, m_specular.m_z, m_specular.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, "material.shininess");
 	if (loc != -1)

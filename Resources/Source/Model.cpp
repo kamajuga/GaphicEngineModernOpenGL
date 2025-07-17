@@ -94,7 +94,7 @@ Model Parser::parse3DObject(const std::string& path)
 	//		LibMath::Vector3 vertex;
 
 	//		// Try to read three floating numbers, and store them in the vertex
-	//		iss >> vertex.getX() >> vertex.getY() >> vertex.getZ();
+	//		iss >> vertex.m_x >> vertex.m_y >> vertex.m_z;
 	//		temp_position.push_back(vertex);
 	//	}
 	//	else 
@@ -103,7 +103,7 @@ Model Parser::parse3DObject(const std::string& path)
 	//		LibMath::Vector2 uv;
 
 	//		 // Try to read two floating numbers, and store them in the uv
-	//		iss >> uv.getX() >> uv.getY();
+	//		iss >> uv.m_x >> uv.m_y;
 	//		temp_uvs.push_back(uv);
 	//	}
 	//	else if (prefix == "vn")
@@ -111,7 +111,7 @@ Model Parser::parse3DObject(const std::string& path)
 	//		LibMath::Vector3 normal;
 
 	//		// Try to read three floating numbers, and store them in the normal
-	//		iss >> normal.getX() >> normal.getY() >> normal.getZ();
+	//		iss >> normal.m_x >> normal.m_y >> normal.m_z;
 	//		temp_normals.push_back(normal);
 	//	}
 	//	else if (prefix == "f")
@@ -160,19 +160,19 @@ Model Parser::parse3DObject(const std::string& path)
 
 void Parser::parseVertexLine(const std::istringstream& iss, TempBuffers& buffers) {
 	LibMath::Vector3 vertex;
-	const_cast<std::istringstream&>(iss) >> vertex.getX() >> vertex.getY() >> vertex.getZ();
+	const_cast<std::istringstream&>(iss) >> vertex.m_x >> vertex.m_y >> vertex.m_z;
 	buffers.m_tempPosition.push_back(vertex);
 }
 
 void Parser::parseUvLine(const std::istringstream& iss, TempBuffers& buffers) {
 	LibMath::Vector2 uv;
-	const_cast<std::istringstream&>(iss) >> uv.getX() >> uv.getY();
+	const_cast<std::istringstream&>(iss) >> uv.m_x >> uv.m_y;
 	buffers.m_tempUV.push_back(uv);
 }
 
 void Parser::parseNormalLine(const std::istringstream& iss, TempBuffers& buffers) {
 	LibMath::Vector3 normal;
-	const_cast<std::istringstream&>(iss) >> normal.getX() >> normal.getY() >> normal.getZ();
+	const_cast<std::istringstream&>(iss) >> normal.m_x >> normal.m_y >> normal.m_z;
 	buffers.m_tempNormal.push_back(normal);
 }
 

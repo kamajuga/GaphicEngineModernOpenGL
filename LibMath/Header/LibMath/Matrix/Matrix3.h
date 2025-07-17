@@ -64,16 +64,19 @@ namespace LibMath
 		Matrix3Dx3			adjugate(void) const;
 		Matrix3Dx3			inverse(void) const;
 
-		static Matrix3Dx3			createTransform(LibMath::Vector2 const translate = LibMath::Vector2(0.0f, 0.0f), // returns T . R . S
-			LibMath::Radian const rotation = LibMath::Radian(0.0f),
-			LibMath::Vector2 const scale = LibMath::Vector2(1.0f, 1.0f));
+		static	Matrix3Dx3			createTranslation(LibMath::Vector2 const& vec);
+
+		static Matrix3Dx3			createTransform(LibMath::Vector2 const& translate = LibMath::Vector2(0.0f, 0.0f), // returns T . R . S
+			LibMath::Radian const& rotation = LibMath::Radian(0.0f),
+			LibMath::Vector2 const& scale = LibMath::Vector2(1.0f, 1.0f));
 	
-		static Matrix3Dx3			createRotationX(LibMath::Radian const angle);
-		static Matrix3Dx3			createRotationY(LibMath::Radian const angle);
-		static Matrix3Dx3			createRotationZ(LibMath::Radian const angle);
+		static Matrix3Dx3			createRotationX(LibMath::Radian const& angle);
+		static Matrix3Dx3			createRotationY(LibMath::Radian const& angle);
+		static Matrix3Dx3			createRotationZ(LibMath::Radian const& angle);
+		static Matrix3Dx3			createRotationZ(LibMath::Vector2 const& center, LibMath::Radian const& angle); // In 2D the rotation is done by the Z axis
 
-		static Matrix3Dx3			createScale(LibMath::Vector3 const scale);
-
+		static Matrix3Dx3			createScale(LibMath::Vector3 const& scale);
+		
 		static Matrix3Dx3			identity(void);
 
 
@@ -82,10 +85,10 @@ namespace LibMath
 		float m_elements[3][3] = { 0.0f }; // row major matrix
 
 	};
-	Matrix3Dx3				operator+(Matrix3Dx3 const mat1, Matrix3Dx3 const mat2);
-	Matrix3Dx3				operator*(Matrix3Dx3 const mat, float const val);
-	LibMath::Vector3		operator*(Matrix3Dx3 const mat, LibMath::Vector3 const vec);
-	Matrix3Dx3				operator*(Matrix3Dx3 const mat1, Matrix3Dx3 const mat2);
+	Matrix3Dx3				operator+(Matrix3Dx3 const& mat1, Matrix3Dx3 const& mat2);
+	Matrix3Dx3				operator*(Matrix3Dx3 const& mat, float const& val);
+	LibMath::Vector3		operator*(Matrix3Dx3 const& mat, LibMath::Vector3 const& vec);
+	Matrix3Dx3				operator*(Matrix3Dx3 const& mat1, Matrix3Dx3 const& mat2);
 }
 
 #endif // !LIBMATH_MATRIX_MATRIX3_H_

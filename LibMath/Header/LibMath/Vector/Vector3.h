@@ -4,8 +4,11 @@
 #include <iostream>
 #include <string>
 
+#include "LibMath/LibMathFwd.h"
+
 #include "LibMath/Angle/Radian.h"
 #include "LibMath/Trigonometry.h"
+
 
 namespace LibMath
 {
@@ -16,16 +19,8 @@ namespace LibMath
 		explicit		Vector3(float val);									// set all component to the same value
 						Vector3(float val_x, float val_y, float val_z);					// set all component individually
 						Vector3(Vector3 const& other);						// copy all component
+						Vector3(LibMath::Geometry3D::Point const& point);
 						~Vector3() = default;
-
-		float			getX(void) const { return m_x; };
-		float&			getX(void) { return m_x; };
-
-		float			getY(void) const { return m_y; };
-		float&			getY(void) { return m_y; };
-
-		float			getZ(void) const { return m_z; };
-		float&			getZ(void) { return m_z; };
 
 		static Vector3	zero(void);											// return a vector with all its component set to 0
 		static Vector3	one(void);											// return a vector with all its component set to 1
@@ -37,6 +32,7 @@ namespace LibMath
 		static Vector3	back(void);											// return a unit vector pointing backward
 
 		Vector3&		operator=(Vector3 const& other) = default;
+
 
 		float&			operator[](int n);								// return this vector component value
 		float			operator[](int n) const;							// return this vector component value
@@ -66,6 +62,9 @@ namespace LibMath
 
 		void			reflectOnto(Vector3 const& vec);					// reflect this vector by an other
 
+		void			rotateX(Radian angle);
+		void			rotateY(Radian angle);
+		void			rotateZ(Radian angle);
 		void			rotate(Radian rad_x, Radian rad_y, Radian rad_z);					// rotate this vector using Euler angle apply in the z, x, y order
 		void			rotate(Radian angle, Vector3 const& vec);					// rotate this vector around an arbitrary axis
 		//void			rotate(Quaternion const&); todo quaternion		// rotate this vector using a quaternion rotor
@@ -77,10 +76,11 @@ namespace LibMath
 
 		void			translate(Vector3 const& vec);						// offset this vector by a given distance
 
-	private:
 		float m_x = 0.0f;
 		float m_y = 0.0f;
 		float m_z = 0.0f;
+	private:
+		
 	};
 
 	Vector3			rotateArroundAxis(Vector3 const& vector, Vector3 const& axis, Radian angle);
@@ -96,12 +96,14 @@ namespace LibMath
 	Vector3			operator*(Vector3 vec1, Vector3 const& vec2);					// Vector3{ .5, 1.5, -2.5 } * Vector3::zero()	// { 0, 0, 0 }			// multiply 2 vectors component wise
 	Vector3			operator*(Vector3 vec, float val);
 	Vector3			operator/(Vector3 vec1, Vector3 const& vec2);					// Vector3{ .5, 1.5, -2.5 } / Vector3{ 2 }		// { .25, .75, -1.25 }	// divide 2 vectors component wise
+	Vector3			operator/(Vector3 vec, float val);
 
 	Vector3&		operator+=(Vector3& vec1, Vector3 const& vec2);				// addition component wise
 	Vector3&		operator-=(Vector3& vec1, Vector3 const& vec2);				// subtraction component wise
 	Vector3&		operator*=(Vector3& vec1, Vector3 const& vec2);				// multiplication component wise
 	Vector3&		operator*=(Vector3& vec, float val);
 	Vector3&		operator/=(Vector3& vec1, Vector3 const& vec2);				// division component wise
+	Vector3&		operator/=(Vector3& vec1, float val);
 
 	std::ostream&	operator<<(std::ostream& os, Vector3 const& vec);			// cout << Vector3{ .5, 1.5, -2.5 }				// add a vector string representation to an output stream
 	std::istream&	operator>>(std::istream& is, Vector3& vec);				// ifstream file{ save.txt }; file >> vector;	// parse a string representation from an input stream into a vector

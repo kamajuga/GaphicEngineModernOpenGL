@@ -18,11 +18,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(EXE_NAME Core)
 
-add_subdirectory(Dependencies)
 add_subdirectory(LibMath)
-add_subdirectory(Physics)
+add_subdirectory(Dependencies)
 add_subdirectory(Resources)
 add_subdirectory(LowRenderer)
+add_subdirectory(Physics)
 add_subdirectory(DataStructure)
 add_subdirectory(Core)
 

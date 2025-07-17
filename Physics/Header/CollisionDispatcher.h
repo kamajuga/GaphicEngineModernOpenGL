@@ -25,7 +25,7 @@ struct      TypeIDPairHasher
 };
 
 // Static map for dispatch
-inline      std::unordered_map<TypeIDPair, CollisionFunc, TypeIDPairHasher> collisionDispatch;
+std::unordered_map<TypeIDPair, CollisionFunc, TypeIDPairHasher> collisionDispatch;
 
 // Generic collision dispatcher
 inline bool checkCollision(const Object::Object3D& a, const Object::Object3D& b)

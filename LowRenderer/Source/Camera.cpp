@@ -21,8 +21,8 @@ Camera::Camera(const LibMath::Vector3& eye, const LibMath::Vector3& center, cons
 	m_worldUp = up;
     LibMath::Vector3 dir = center - eye;
     dir.normalize();
-    m_yaw = LibMath::atan(dir.getZ(), dir.getX());
-    m_pitch = LibMath::asin(dir.getY());
+    m_yaw = LibMath::atan(dir.m_z, dir.m_x);
+    m_pitch = LibMath::asin(dir.m_y);
     m_projectionMatrix = LibMath::Matrix4::perspective(fovYRadians, aspect, nearPlane, farPlane);
     updateCameraVectors();
     m_viewMatrix = lookAt(m_position, m_position + m_front, m_up);
@@ -57,9 +57,9 @@ LibMath::Matrix4 Camera::createViewMatrix(LibMath::Vector3 position, float pitch
 
 
     LibMath::Matrix4 ViewMatrix(
-        xaxis.getX(), yaxis.getX(), zaxis.getX(), -dotXAxis,
-        xaxis.getY(), yaxis.getY(), zaxis.getY(), -dotYAxis,
-        xaxis.getZ(), yaxis.getZ(), zaxis.getZ(), -dotZAxis,
+        xaxis.m_x, yaxis.m_x, zaxis.m_x, -dotXAxis,
+        xaxis.m_y, yaxis.m_y, zaxis.m_y, -dotYAxis,
+        xaxis.m_z, yaxis.m_z, zaxis.m_z, -dotZAxis,
         0.f, 0.f, 0.f, 1
     );
 
@@ -67,9 +67,9 @@ LibMath::Matrix4 Camera::createViewMatrix(LibMath::Vector3 position, float pitch
     return ViewMatrix;
 }
 
-void Camera::setTransformMatrix(LibMath::Vector3 const translate, LibMath::Radian const rotation, LibMath::Vector3 const scale, LibMath::Vector3 const axis)
+void Camera::setTransformMatrix(LibMath::Vector3 const translate, LibMath::Radian const rotation, LibMath::Vector3 const scale)
 {
-	m_transformMatrix = LibMath::Matrix4::createTransform(translate, rotation, scale, axis);
+	m_transformMatrix = LibMath::Matrix4::createTransform(translate, rotation, scale);
 
 }
 
@@ -83,9 +83,9 @@ LibMath::Matrix4 Camera::lookAt(const LibMath::Vector3& eye, const LibMath::Vect
 
     LibMath::Matrix4 result = LibMath::Matrix4::identity();
 
-    result[0][0] = s.getX(); result[1][0] = s.getY(); result[2][0] = s.getZ();
-    result[0][1] = u.getX(); result[1][1] = u.getY(); result[2][1] = u.getZ();
-    result[0][2] = -f.getX(); result[1][2] = -f.getY(); result[2][2] = -f.getZ();
+    result[0][0] = s.m_x; result[1][0] = s.m_y; result[2][0] = s.m_z;
+    result[0][1] = u.m_x; result[1][1] = u.m_y; result[2][1] = u.m_z;
+    result[0][2] = -f.m_x; result[1][2] = -f.m_y; result[2][2] = -f.m_z;
 
     result[3][0] = -s.dot(eye);
     result[3][1] = -u.dot(eye);
@@ -102,15 +102,15 @@ void Camera::uploadPositionToGPU(GLuint shaderProgram, const std::string& unifor
 		//throw std::runtime_error("Model matrix uniform not found: " + uniformName);
 		return;
 	}
-	glUniform3f(location, m_position.getX(), m_position.getY(), m_position.getZ());
+	glUniform3f(location, m_position.m_x, m_position.m_y, m_position.m_z);
 }
 
 void Camera::updateCameraVectors()
 {
     LibMath::Vector3 front;
-    front.getX() = LibMath::cos(m_yaw) * LibMath::cos(m_pitch);
-    front.getY() = LibMath::sin(m_pitch);
-    front.getZ() = LibMath::sin(m_yaw) * LibMath::cos(m_pitch);
+    front.m_x = LibMath::cos(m_yaw) * LibMath::cos(m_pitch);
+    front.m_y = LibMath::sin(m_pitch);
+    front.m_z = LibMath::sin(m_yaw) * LibMath::cos(m_pitch);
     front.normalize();
 
     m_front = front;

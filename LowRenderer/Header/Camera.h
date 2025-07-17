@@ -27,8 +27,7 @@ public:
 
 	void setTransformMatrix(LibMath::Vector3 const translate = LibMath::Vector3(0.0f, 0.0f, 0.0f), // returns T . R . S
 							LibMath::Radian const rotation = LibMath::Radian(0.0f),
-							LibMath::Vector3 const scale = LibMath::Vector3(1.0f, 1.0f, 1.0f),
-							LibMath::Vector3 const axis = LibMath::Vector3(1.0f, 1.0f, 1.0f));
+							LibMath::Vector3 const scale = LibMath::Vector3(1.0f, 1.0f, 1.0f));
 
 	LibMath::Matrix4 lookAt(const LibMath::Vector3& eye, const LibMath::Vector3& center, const LibMath::Vector3& up);
 	

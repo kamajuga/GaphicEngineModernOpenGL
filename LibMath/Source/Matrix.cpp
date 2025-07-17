@@ -1,7 +1,7 @@
 #include "LibMath/Matrix.h"
 #include "LibMath/Trigonometry.h"
-#include "LibMath/Arithmetic.h"
 #include "LibMath/Matrix4Vector4Operation.h"
+#include "LibMath/Arithmetic.h"
 
 #pragma region Matrix 2D
 
@@ -43,13 +43,22 @@ bool LibMath::Matrix2Dx2::operator==(Matrix2Dx2 const& other) const
 			m_elements[1][1] == other.m_elements[1][1]	);
 }
 
-LibMath::Matrix2Dx2::RowProxy LibMath::Matrix2Dx2::operator[](size_t const row)
-{
-	if (row > 1)
-	{
-		throw(std::out_of_range("Error: row out of range"));
-	}
-	return RowProxy(m_elements[row]);
+float* LibMath::Matrix2Dx2::operator[](size_t const row)  
+{  
+	if (row > 1)  
+	{  
+		throw(std::out_of_range("Error: row out of range"));  
+	}  
+	return m_elements[row];  
+}  
+
+float const* LibMath::Matrix2Dx2::operator[](size_t const row) const  
+{  
+	if (row > 1)  
+	{  
+		throw(std::out_of_range("Error: row out of range"));  
+	}  
+	return m_elements[row];  
 }
 
 float LibMath::Matrix2Dx2::determinant(void) const
@@ -89,15 +98,19 @@ LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::adjugate(void) const
 
 LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::inverse(void) const
 {
-	Matrix2Dx2 adjugate = this->adjugate();
 	float determinant = this->determinant();
 
-	float coef = 1 / determinant;
+	if (LibMath::almostEqual(determinant, 0))
+	{
+		return Matrix2Dx2();
+	}
 
-	return Matrix2Dx2(coef * adjugate.m_elements[0][0],
-					coef * adjugate.m_elements[0][1],
-					coef * adjugate.m_elements[1][0],
-					coef * adjugate.m_elements[1][1]);
+	float inv_det = 1 / determinant;
+
+	return Matrix2Dx2(inv_det * m_elements[1][1],
+					-inv_det * m_elements[0][1],
+					-inv_det * m_elements[1][0],
+					inv_det * m_elements[0][0]);
 }
 
 LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::transpose(void) const
@@ -122,14 +135,14 @@ LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createRotation(Radian const& rad_) cons
 		-sinTheta, cosTheta);
 }
 
-LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createScale(LibMath::Vector2 vec) const
+LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createScale(LibMath::Vector2 const& vec) const
 {
-	Matrix2Dx2 scale(vec.getX(), 0, 0, vec.getY());
+	Matrix2Dx2 scale(vec.m_x, 0, 0, vec.m_y);
 
 	return scale;
 }
 
-LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createTransform(LibMath::Radian rad, LibMath::Vector2 scale) const
+LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createTransform(LibMath::Radian const& rad, LibMath::Vector2 const& scale) const
 {
 
 	// Create the basic 2x2 rotation matrix
@@ -138,8 +151,8 @@ LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::createTransform(LibMath::Radian rad, Li
 
 
 	return Matrix2Dx2(
-		scale.getX() * cosTheta, -sinTheta,
-		sinTheta, scale.getY() * cosTheta
+		scale.m_x * cosTheta, -sinTheta,
+		sinTheta, scale.m_y * cosTheta
 	);
 }
 
@@ -148,7 +161,7 @@ LibMath::Matrix2Dx2 LibMath::Matrix2Dx2::identity(void) const
 	return Matrix2Dx2(1, 0, 0, 1);
 }
 
-LibMath::Matrix2Dx2 LibMath::operator+(LibMath::Matrix2Dx2  m1, LibMath::Matrix2Dx2 m2)
+LibMath::Matrix2Dx2 LibMath::operator+(LibMath::Matrix2Dx2 const&  m1, LibMath::Matrix2Dx2 const& m2)
 {
 	float a1 = m1[0][0] + m2[0][0];
 	float a2 = m1[0][1] + m2[0][1];
@@ -158,7 +171,7 @@ LibMath::Matrix2Dx2 LibMath::operator+(LibMath::Matrix2Dx2  m1, LibMath::Matrix2
 	return LibMath::Matrix2Dx2(a1, a2, a3, a4);
 }
 
-LibMath::Matrix2Dx2 LibMath::operator*(LibMath::Matrix2Dx2 m1, LibMath::Matrix2Dx2 m2)
+LibMath::Matrix2Dx2 LibMath::operator*(LibMath::Matrix2Dx2 const& m1, LibMath::Matrix2Dx2 const& m2)
 {
 	float a1 = m1[0][0] * m2[0][0] + m1[1][0] * m2[0][1];
 	float a2 = m1[0][1] * m2[0][0] + m1[1][1] * m2[0][1];
@@ -168,20 +181,20 @@ LibMath::Matrix2Dx2 LibMath::operator*(LibMath::Matrix2Dx2 m1, LibMath::Matrix2D
 	return LibMath::Matrix2Dx2(a1, a2, a3, a4);
 }
 
-LibMath::Matrix2Dx2 LibMath::operator*(LibMath::Matrix2Dx2 m1, float scalair)
+LibMath::Matrix2Dx2 LibMath::operator*(LibMath::Matrix2Dx2 const& m1, float const&  scalar)
 {
-	float a1 = scalair * m1[0][0];
-	float a2 = scalair * m1[0][1];
-	float a3 = scalair * m1[1][0];
-	float a4 = scalair * m1[1][1];
+	float a1 = scalar * m1[0][0];
+	float a2 = scalar * m1[0][1];
+	float a3 = scalar * m1[1][0];
+	float a4 = scalar * m1[1][1];
 
 	return LibMath::Matrix2Dx2(a1, a2, a3, a4);
 }
 
-LibMath::Vector2 LibMath::operator*(LibMath::Matrix2Dx2 m, LibMath::Vector2 vec)
+LibMath::Vector2 LibMath::operator*(LibMath::Matrix2Dx2 const& m, LibMath::Vector2 const& vec)
 {
-	float a1 = m[0][0] * vec.getX() + m[1][0] * vec.getY();
-	float a2 = m[0][1] * vec.getX() + m[1][1] * vec.getY();
+	float a1 = m[0][0] * vec.m_x + m[1][0] * vec.m_y;
+	float a2 = m[0][1] * vec.m_x + m[1][1] * vec.m_y;
 
 	return LibMath::Vector2(a1, a2);
 }
@@ -290,17 +303,17 @@ LibMath::Matrix2Dx3::RowProxy LibMath::Matrix2Dx3::operator[](size_t const row) 
 	return RowProxy(m_elements[row]);
 }
 
-LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createTranslation(LibMath::Vector2 const translation)
+LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createTranslation(LibMath::Vector2 const& translation)
 {
 	Matrix2Dx3 translation_m(      1,               0,              0,
 							       0,               1,              0, 
-							translation.getX(), translation.getY(), 1);
+							translation.m_x, translation.m_y, 1);
 
 	return translation_m;
 }
 
 LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createRotation(LibMath::Geometry2D::Point
-	const point, LibMath::Radian  rad)
+	const& point, LibMath::Radian const& rad)
 {
 
 	float cosR = LibMath::cos(rad);
@@ -308,19 +321,19 @@ LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createRotation(LibMath::Geometry2D::Poi
 
 	Matrix2Dx3 rotation(                        cosR,                                            sinR,                    0,
 						                       -sinR,                                            cosR,                    0,
-						point.getX() * (1 - cosR) + point.getY() * sinR, point.getY() * (1 - cosR) - point.getY() * sinR, 1);
+						point.m_x * (1 - cosR) + point.m_y * sinR, point.m_y * (1 - cosR) - point.m_y * sinR, 1);
 	return rotation;
 }
 
-LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createScale(LibMath::Vector2 const scale)
+LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createScale(LibMath::Vector2 const& scale)
 {
-	Matrix2Dx3 scale_m(scale.getX(), 0, 0,
-		0, scale.getY(), 0,
-		0, 0, 1);
+	Matrix2Dx3 scale_m(scale.m_x, 0, 0,
+						0, scale.m_y, 0,
+						0, 0, 1);
 	return scale_m;
 }
 
-LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createTransform(LibMath::Vector2 const translation, LibMath::Radian const rotation, LibMath::Vector2 const scale) 
+LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createTransform(LibMath::Vector2 const& translation, LibMath::Radian const& rotation, LibMath::Vector2 const& scale) 
 {
 	float cosR = LibMath::cos(rotation);
 	float sinR = LibMath::sin(rotation);
@@ -329,9 +342,9 @@ LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::createTransform(LibMath::Vector2 const 
 	LibMath::Matrix2Dx3 rotate = createRotation(LibMath::Geometry2D::Point(0.f, 0.f), rotation);
 	LibMath::Matrix2Dx3 scaleM = createScale(scale);
 
-	return Matrix2Dx3(scale.getX() * cosR, sinR * scale.getX(),  0,
-					  -sinR * scale.getY(), scale.getY() * cosR, 0,
-					  translation.getX(), translation.getY(),    1
+	return Matrix2Dx3(scale.m_x * cosR, sinR * scale.m_x,  0,
+					  -sinR * scale.m_y, scale.m_y * cosR, 0,
+					  translation.m_x, translation.m_y,    1
 	);
 	
 }
@@ -341,7 +354,7 @@ LibMath::Matrix2Dx3 LibMath::Matrix2Dx3::identity(void)
 	return Matrix2Dx3(1, 0, 0, 0, 1, 0, 0, 0, 1);
 }
 
-LibMath::Matrix2Dx3 LibMath::operator+(Matrix2Dx3 const m1, Matrix2Dx3 const m2)
+LibMath::Matrix2Dx3 LibMath::operator+(Matrix2Dx3 const& m1, Matrix2Dx3 const& m2)
 {
 
 	return Matrix2Dx3(
@@ -351,16 +364,26 @@ LibMath::Matrix2Dx3 LibMath::operator+(Matrix2Dx3 const m1, Matrix2Dx3 const m2)
 	);
 }
 
-LibMath::Matrix2Dx3 LibMath::operator*(Matrix2Dx3 const m, float const scalair)
+LibMath::Matrix2Dx3 LibMath::operator*(Matrix2Dx3 const& m, float const& scalar)
 {
 	return Matrix2Dx3(
-		scalair * m[0][0], scalair * m[0][1], scalair * m[0][2],
-		scalair * m[1][0], scalair * m[1][1], scalair * m[1][2],
-		scalair * m[2][0], scalair * m[2][1], scalair * m[2][2]
+		scalar * m[0][0], scalar * m[0][1], scalar * m[0][2],
+		scalar * m[1][0], scalar * m[1][1], scalar * m[1][2],
+		scalar * m[2][0], scalar * m[2][1], scalar * m[2][2]
 	);
 }
 
-LibMath::Matrix2Dx3 LibMath::operator*(Matrix2Dx3 const m1, Matrix2Dx3 const m2)
+LibMath::Vector3 LibMath::operator*(Matrix2Dx3 const& m, LibMath::Vector3 const& vec)
+{
+	//column-major
+	return Vector3(
+		(m[0][0] * vec.m_x + m[1][0] * vec.m_y + m[2][0] * vec.m_z),
+		(m[0][1] * vec.m_x + m[1][1] * vec.m_y + m[2][1] * vec.m_z),
+		(m[0][2] * vec.m_x + m[1][2] * vec.m_y + m[2][2] * vec.m_z)
+	);
+}
+
+LibMath::Matrix2Dx3 LibMath::operator*(Matrix2Dx3 const& m1, Matrix2Dx3 const& m2)
 {
 	// Access elements in column-major order: m[column][row]
 
@@ -541,20 +564,27 @@ LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::inverse(void) const
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createTransform(LibMath::Vector2 const translate, LibMath::Radian const rotation, LibMath::Vector2 const scale)
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createTranslation(LibMath::Vector2 const& translation)
+{
+	return Matrix3Dx3(			0,					0,					0,
+								0,					0,					0, 
+					translation.m_x, translation.m_y,				1);
+}
+
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createTransform(LibMath::Vector2 const& translate, LibMath::Radian const& rotation, LibMath::Vector2 const& scale)
 {
 	
 	float cosR = LibMath::cos(rotation);
 	float sinR = LibMath::sin(rotation);
 	
 	return Matrix3Dx3(
-		scale.getX() * cosR, scale.getX() * sinR, 0.f,
-		-scale.getY() * sinR, scale.getY() * cosR, 0.f,
-		translate.getX(), translate.getY(), 1.f
+		scale.m_x * cosR, scale.m_x * sinR, 0.f,
+		-scale.m_y * sinR, scale.m_y * cosR, 0.f,
+		translate.m_x, translate.m_y, 1.f
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationX(LibMath::Radian const angle)
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationX(LibMath::Radian const& angle)
 {
 	float cosR = LibMath::cos(angle);
 	float sinR = LibMath::sin(angle);
@@ -566,7 +596,7 @@ LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationX(LibMath::Radian const a
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationY(LibMath::Radian const angle)
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationY(LibMath::Radian const& angle)
 {
 	float cosR = LibMath::cos(angle);
 	float sinR = LibMath::sin(angle);
@@ -578,7 +608,7 @@ LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationY(LibMath::Radian const a
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationZ(LibMath::Radian const angle)
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationZ(LibMath::Radian const& angle)
 {
 	float cosR = LibMath::cos(angle);
 	float sinR = LibMath::sin(angle);
@@ -590,12 +620,21 @@ LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationZ(LibMath::Radian const a
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createScale(LibMath::Vector3 const scale)
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createRotationZ(LibMath::Vector2 const& center, LibMath::Radian const& angle)
+{
+	Matrix3Dx3 translateToOrigin = createTranslation(Vector2(-center.m_x, -center.m_y));
+	Matrix3Dx3 rotation = createRotationZ(angle);
+	Matrix3Dx3 translateBack = createTranslation(center);
+
+	return translateBack * rotation * translateToOrigin;
+}
+
+LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::createScale(LibMath::Vector3 const& scale)
 {
 	return Matrix3Dx3(
-		scale.getX(), 0.0f, 0.f,
-		0.f, scale.getY(), 0.f,
-		0.f, 0.f, scale.getZ()
+		scale.m_x, 0.0f, 0.f,
+		0.f, scale.m_y, 0.f,
+		0.f, 0.f, scale.m_z
 	);
 }
 
@@ -608,7 +647,7 @@ LibMath::Matrix3Dx3 LibMath::Matrix3Dx3::identity(void)
 	);
 }
 
-LibMath::Matrix3Dx3	LibMath::operator+(Matrix3Dx3 const m1, Matrix3Dx3 const m2)
+LibMath::Matrix3Dx3	LibMath::operator+(Matrix3Dx3 const& m1, Matrix3Dx3 const& m2)
 {
 	return Matrix3Dx3(
 		m1[0][0] + m2[0][0], m1[0][1] + m2[0][1], m1[0][2] + m2[0][2],
@@ -617,26 +656,26 @@ LibMath::Matrix3Dx3	LibMath::operator+(Matrix3Dx3 const m1, Matrix3Dx3 const m2)
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::operator*(Matrix3Dx3 const m, float const scalair)
+LibMath::Matrix3Dx3 LibMath::operator*(Matrix3Dx3 const& m, float const& scalar)
 {
 	return Matrix3Dx3(
-		scalair * m[0][0], scalair * m[0][1], scalair * m[0][2],
-		scalair * m[1][0], scalair * m[1][1], scalair * m[1][2],
-		scalair * m[2][0], scalair * m[2][1], scalair * m[2][2]
+		scalar * m[0][0], scalar * m[0][1], scalar * m[0][2],
+		scalar * m[1][0], scalar * m[1][1], scalar * m[1][2],
+		scalar * m[2][0], scalar * m[2][1], scalar * m[2][2]
 	);
 }
 
-LibMath::Vector3 LibMath::operator*(Matrix3Dx3 const mat, LibMath::Vector3 const vec)
+LibMath::Vector3 LibMath::operator*(Matrix3Dx3 const& mat, LibMath::Vector3 const& vec)
 {
 	// Column-Major
 	return LibMath::Vector3(
-		mat[0][0] * vec.getX() + mat[1][0] * vec.getY() + mat[2][0] * vec.getZ(),
-		mat[0][1] * vec.getX() + mat[1][1] * vec.getY() + mat[2][1] * vec.getZ(),
-		mat[0][2] * vec.getX() + mat[1][2] * vec.getY() + mat[2][2] * vec.getZ()
+		mat[0][0] * vec.m_x + mat[1][0] * vec.m_y + mat[2][0] * vec.m_z,
+		mat[0][1] * vec.m_x + mat[1][1] * vec.m_y + mat[2][1] * vec.m_z,
+		mat[0][2] * vec.m_x + mat[1][2] * vec.m_y + mat[2][2] * vec.m_z
 	);
 }
 
-LibMath::Matrix3Dx3 LibMath::operator*(Matrix3Dx3 const m1, Matrix3Dx3 const m2)
+LibMath::Matrix3Dx3 LibMath::operator*(Matrix3Dx3 const& m1, Matrix3Dx3 const& m2)
 {
 
 	float a1 = (m1[0][0] * m2[0][0]) + (m1[1][0] * m2[0][1]) + (m1[2][0] * m2[0][2]);
@@ -968,28 +1007,30 @@ LibMath::Matrix4 LibMath::Matrix4::perspective(float const fov, float const aspe
 	return result;
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createTransform(LibMath::Vector3 const translate, LibMath::Radian const rotation, LibMath::Vector3 const scale, LibMath::Vector3 axis)
+LibMath::Matrix4 LibMath::Matrix4::createTransform(Vector3 const& translate = Vector3(0.f, 0.f, 0.f),
+	Radian const& rotation = Radian(0.f),
+	Vector3 const& scale = Vector3(1.f, 1.f, 1.f))
 {
 	// Create translation, rotation, and scale matrices
 	Matrix4 translationMatrix = createTranslate(translate);
-	Matrix4 rotationMatrix = createRotationY(rotation); // Assuming rotation around Z-axis
+	Matrix4 rotationMatrix = createRotationZ(rotation); // Assuming rotation around Z-axis
 	Matrix4 scaleMatrix = createScale(scale);
 
 	// Combine matrices: T * R * S
 	return translationMatrix * rotationMatrix * scaleMatrix;
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createTranslate(LibMath::Vector3 const  translate)
+LibMath::Matrix4 LibMath::Matrix4::createTranslate(LibMath::Vector3 const&  translate)
 {
 	return Matrix4(
 				1.f,			  0.f,				0.f,	  0.f,
 				0.f,			  1.f,				0.f,	  0.f,
 				0.f,			  0.f,				1.f,	  0.f,
-		translate.getX(), translate.getY(), translate.getZ(), 1.f
+		translate.m_x, translate.m_y, translate.m_z, 1.f
 	);
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createRotationX(LibMath::Radian const angle)
+LibMath::Matrix4 LibMath::Matrix4::createRotationX(LibMath::Radian const& angle)
 {
 	float const cosR = LibMath::cos(angle);
 	float const sinR = LibMath::sin(angle);
@@ -1002,7 +1043,7 @@ LibMath::Matrix4 LibMath::Matrix4::createRotationX(LibMath::Radian const angle)
 	);
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createRotationY(LibMath::Radian const angle)
+LibMath::Matrix4 LibMath::Matrix4::createRotationY(LibMath::Radian const& angle)
 {
 	float const cosR = LibMath::cos(angle);
 	float const sinR = LibMath::sin(angle);
@@ -1015,7 +1056,7 @@ LibMath::Matrix4 LibMath::Matrix4::createRotationY(LibMath::Radian const angle)
 	);
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createRotationZ(LibMath::Radian const angle)
+LibMath::Matrix4 LibMath::Matrix4::createRotationZ(LibMath::Radian const& angle)
 {
 	float const cosR = LibMath::cos(angle);
 	float const sinR = LibMath::sin(angle);
@@ -1043,13 +1084,13 @@ LibMath::Matrix4 LibMath::Matrix4::RemoveTranslationComponent(const LibMath::Mat
 	return temp;
 }
 
-LibMath::Matrix4 LibMath::Matrix4::createScale(LibMath::Vector3 const scale)
+LibMath::Matrix4 LibMath::Matrix4::createScale(LibMath::Vector3 const& scale)
 {
 
 	return Matrix4(
-		scale.getX(), 0.f, 0.f, 0.f, 
-		0.f, scale.getY(), 0.f, 0.f,
-		0.f, 0.f, scale.getZ(), 0.f, 
+		scale.m_x, 0.f, 0.f, 0.f, 
+		0.f, scale.m_y, 0.f, 0.f,
+		0.f, 0.f, scale.m_z, 0.f, 
 		0.f, 0.f, 0.f, 1.f
 	);
 }
@@ -1064,7 +1105,7 @@ LibMath::Matrix4 LibMath::Matrix4::identity(void)
 	);
 }
 
-LibMath::Matrix4 LibMath::operator+(Matrix4 const m1, Matrix4 const m2)
+LibMath::Matrix4 LibMath::operator+(Matrix4 const& m1, Matrix4 const& m2)
 {
 	return Matrix4(
 		m1[0][0] + m2[0][0], m1[0][1] + m2[0][1], m1[0][2] + m2[0][2], m1[0][3] + m2[0][3],
@@ -1074,54 +1115,54 @@ LibMath::Matrix4 LibMath::operator+(Matrix4 const m1, Matrix4 const m2)
 	);
 }
 
-LibMath::Matrix4 LibMath::operator*(Matrix4 const m, float const scalair)
+LibMath::Matrix4 LibMath::operator*(Matrix4 const& m, float const& scalar)
 {
 	return Matrix4(
-		scalair * m[0][0], scalair * m[0][1], scalair * m[0][2], scalair * m[0][3],
-		scalair * m[1][0], scalair * m[1][1], scalair * m[1][2], scalair * m[1][3],
-		scalair * m[2][0], scalair * m[2][1], scalair * m[2][2], scalair * m[2][3],
-		scalair * m[3][0], scalair * m[3][1], scalair * m[3][2], scalair * m[3][3]
+		scalar * m[0][0], scalar * m[0][1], scalar * m[0][2], scalar * m[0][3],
+		scalar * m[1][0], scalar * m[1][1], scalar * m[1][2], scalar * m[1][3],
+		scalar * m[2][0], scalar * m[2][1], scalar * m[2][2], scalar * m[2][3],
+		scalar * m[3][0], scalar * m[3][1], scalar * m[3][2], scalar * m[3][3]
 	);
 }
 
 LibMath::Vector4 LibMath::operator*(const Matrix4 & m, const LibMath::Vector4 & vec)
 {
 	return LibMath::Vector4(
-		(m[0][0] * vec.getX()) + (m[1][0] * vec.getY()) + (m[2][0] * vec.getZ()) + (m[3][0] * vec.getK()),
-		(m[0][1] * vec.getX()) + (m[1][1] * vec.getY()) + (m[2][1] * vec.getZ()) + (m[3][1] * vec.getK()),
-		(m[0][2] * vec.getX()) + (m[1][2] * vec.getY()) + (m[2][2] * vec.getZ()) + (m[3][2] * vec.getK()),
-		(m[0][3] * vec.getX()) + (m[1][3] * vec.getY()) + (m[2][3] * vec.getZ()) + (m[3][3] * vec.getK())
+		(m[0][0] * vec.m_x) + (m[1][0] * vec.m_y) + (m[2][0] * vec.m_z) + (m[3][0] * vec.m_k),
+		(m[0][1] * vec.m_x) + (m[1][1] * vec.m_y) + (m[2][1] * vec.m_z) + (m[3][1] * vec.m_k),
+		(m[0][2] * vec.m_x) + (m[1][2] * vec.m_y) + (m[2][2] * vec.m_z) + (m[3][2] * vec.m_k),
+		(m[0][3] * vec.m_x) + (m[1][3] * vec.m_y) + (m[2][3] * vec.m_z) + (m[3][3] * vec.m_k)
 	);
 }
 
-LibMath::Matrix4 LibMath::operator*(Matrix4 const m1, Matrix4 const m2)
+LibMath::Matrix4 LibMath::operator*(Matrix4 const& m1, Matrix4 const& m2)
 {
-	float comp00 = (m2[0][0] * m1[0][0]) + (m2[0][1] * m1[1][0]) + (m2[0][2] * m1[2][0]) + (m2[0][3] * m1[3][0]);
-	float comp01 = (m2[0][0] * m1[0][1]) + (m2[0][1] * m1[1][1]) + (m2[0][2] * m1[2][1]) + (m2[0][3] * m1[3][1]);
-	float comp02 = (m2[0][0] * m1[0][2]) + (m2[0][1] * m1[1][2]) + (m2[0][2] * m1[2][2]) + (m2[0][3] * m1[3][2]);
-	float comp03 = (m2[0][0] * m1[0][3]) + (m2[0][1] * m1[1][3]) + (m2[0][2] * m1[2][3]) + (m2[0][3] * m1[3][3]);
-
-	float comp10 = (m2[1][0] * m1[0][0]) + (m2[1][1] * m1[1][0]) + (m2[1][2] * m1[2][0]) + (m2[1][3] * m1[3][0]);
-	float comp11 = (m2[1][0] * m1[0][1]) + (m2[1][1] * m1[1][1]) + (m2[1][2] * m1[2][1]) + (m2[1][3] * m1[3][1]);
-	float comp12 = (m2[1][0] * m1[0][2]) + (m2[1][1] * m1[1][2]) + (m2[1][2] * m1[2][2]) + (m2[1][3] * m1[3][2]);
-	float comp13 = (m2[1][0] * m1[0][3]) + (m2[1][1] * m1[1][3]) + (m2[1][2] * m1[2][3]) + (m2[1][3] * m1[3][3]);
-
-	float comp20 = (m2[2][0] * m1[0][0]) + (m2[2][1] * m1[1][0]) + (m2[2][2] * m1[2][0]) + (m2[2][3] * m1[3][0]);
-	float comp21 = (m2[2][0] * m1[0][1]) + (m2[2][1] * m1[1][1]) + (m2[2][2] * m1[2][1]) + (m2[2][3] * m1[3][1]);
-	float comp22 = (m2[2][0] * m1[0][2]) + (m2[2][1] * m1[1][2]) + (m2[2][2] * m1[2][2]) + (m2[2][3] * m1[3][2]);
-	float comp23 = (m2[2][0] * m1[0][3]) + (m2[2][1] * m1[1][3]) + (m2[2][2] * m1[2][3]) + (m2[2][3] * m1[3][3]);
-
-	float comp30 = (m2[3][0] * m1[0][0]) + (m2[3][1] * m1[1][0]) + (m2[3][2] * m1[2][0]) + (m2[3][3] * m1[3][0]);
-	float comp31 = (m2[3][0] * m1[0][1]) + (m2[3][1] * m1[1][1]) + (m2[3][2] * m1[2][1]) + (m2[3][3] * m1[3][1]);
-	float comp32 = (m2[3][0] * m1[0][2]) + (m2[3][1] * m1[1][2]) + (m2[3][2] * m1[2][2]) + (m2[3][3] * m1[3][2]);
-	float comp33 = (m2[3][0] * m1[0][3]) + (m2[3][1] * m1[1][3]) + (m2[3][2] * m1[2][3]) + (m2[3][3] * m1[3][3]);
-
-	return Matrix4(
-		comp00, comp01, comp02, comp03,
-		comp10, comp11, comp12, comp13,
-		comp20, comp21, comp22, comp23,
-		comp30, comp31, comp32, comp33
-	);
+	float comp00 = (m1[0][0] * m2[0][0]) + (m1[1][0] * m2[0][1]) + (m1[2][0] * m2[0][2]) + (m1[3][0] * m2[0][3]);
+    float comp01 = (m1[0][1] * m2[0][0]) + (m1[1][1] * m2[0][1]) + (m1[2][1] * m2[0][2]) + (m1[3][1] * m2[0][3]);
+    float comp02 = (m1[0][2] * m2[0][0]) + (m1[1][2] * m2[0][1]) + (m1[2][2] * m2[0][2]) + (m1[3][2] * m2[0][3]);
+    float comp03 = (m1[0][3] * m2[0][0]) + (m1[1][3] * m2[0][1]) + (m1[2][3] * m2[0][2]) + (m1[3][3] * m2[0][3]);
+    
+    float comp10 = (m1[0][0] * m2[1][0]) + (m1[1][0] * m2[1][1]) + (m1[2][0] * m2[1][2]) + (m1[3][0] * m2[1][3]);
+    float comp11 = (m1[0][1] * m2[1][0]) + (m1[1][1] * m2[1][1]) + (m1[2][1] * m2[1][2]) + (m1[3][1] * m2[1][3]);
+    float comp12 = (m1[0][2] * m2[1][0]) + (m1[1][2] * m2[1][1]) + (m1[2][2] * m2[1][2]) + (m1[3][2] * m2[1][3]);
+    float comp13 = (m1[0][3] * m2[1][0]) + (m1[1][3] * m2[1][1]) + (m1[2][3] * m2[1][2]) + (m1[3][3] * m2[1][3]);
+    
+    float comp20 = (m1[0][0] * m2[2][0]) + (m1[1][0] * m2[2][1]) + (m1[2][0] * m2[2][2]) + (m1[3][0] * m2[2][3]);
+    float comp21 = (m1[0][1] * m2[2][0]) + (m1[1][1] * m2[2][1]) + (m1[2][1] * m2[2][2]) + (m1[3][1] * m2[2][3]);
+    float comp22 = (m1[0][2] * m2[2][0]) + (m1[1][2] * m2[2][1]) + (m1[2][2] * m2[2][2]) + (m1[3][2] * m2[2][3]);
+    float comp23 = (m1[0][3] * m2[2][0]) + (m1[1][3] * m2[2][1]) + (m1[2][3] * m2[2][2]) + (m1[3][3] * m2[2][3]);
+    
+    float comp30 = (m1[0][0] * m2[3][0]) + (m1[1][0] * m2[3][1]) + (m1[2][0] * m2[3][2]) + (m1[3][0] * m2[3][3]);
+    float comp31 = (m1[0][1] * m2[3][0]) + (m1[1][1] * m2[3][1]) + (m1[2][1] * m2[3][2]) + (m1[3][1] * m2[3][3]);
+    float comp32 = (m1[0][2] * m2[3][0]) + (m1[1][2] * m2[3][1]) + (m1[2][2] * m2[3][2]) + (m1[3][2] * m2[3][3]);
+    float comp33 = (m1[0][3] * m2[3][0]) + (m1[1][3] * m2[3][1]) + (m1[2][3] * m2[3][2]) + (m1[3][3] * m2[3][3]);
+    
+    return Matrix4(
+        comp00, comp01, comp02, comp03,
+        comp10, comp11, comp12, comp13,
+        comp20, comp21, comp22, comp23,
+        comp30, comp31, comp32, comp33
+    );
 }
 
 #pragma endregion

@@ -28,5 +28,17 @@ private:
 
 };
 
+class PBRMat
+{
+public:
+	PBRMat() = default;
+
+
+	LibMath::Vector3 jio;
+
+private:
+
+};
+
 
 

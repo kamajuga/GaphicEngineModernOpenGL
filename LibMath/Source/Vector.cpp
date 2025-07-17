@@ -1,5 +1,6 @@
 #include "LibMath/Vector.h"
 #include "LibMath/Matrix/Matrix3.h"
+#include "LibMath/GeometricObject3.h"
 #include <cmath>
 
 #define EPSILON 1e-5
@@ -28,6 +29,13 @@ LibMath::Vector2::Vector2(Vector2 const& other)
 	m_x = other.m_x;
 	m_y = other.m_y;
 }
+
+LibMath::Vector2::Vector2(Geometry2D::Point const& point)
+{
+	m_x = point.m_x;
+	m_y = point.m_y;
+}
+
 
 float& LibMath::Vector2::operator[](int n)
 {
@@ -99,10 +107,36 @@ LibMath::Vector2& LibMath::Vector2::operator*=(const Vector2& other)
 	return *this;
 }
 
+LibMath::Vector2& LibMath::Vector2::operator*=(const float& val)
+{
+	m_x *= val;
+	m_y *= val;
+
+	return *this;
+}
+
 LibMath::Vector2& LibMath::Vector2::operator/=(const Vector2& other)
 {
+	if (other.m_x == 0.f || other.m_y == 0.f)
+	{
+		throw std::runtime_error("Error: Division by zero \n x or y component is null.");
+	}
+
 	m_x /= other.m_x;
 	m_y /= other.m_y;
+
+	return *this;
+}
+
+LibMath::Vector2& LibMath::Vector2::operator/=(const float& val)
+{
+	if (val == 0.f)
+	{
+		throw std::runtime_error("Error: Division by zero");
+	}
+
+	m_x /= val;
+	m_y /= val;
 
 	return *this;
 }
@@ -124,8 +158,8 @@ float LibMath::Vector2::dotProduct(Vector2 vec) const
 
 float LibMath::Vector2::magnitudeSquare(void) const
 {
-	float mag = magnitude();
-	return powf(mag, 2);
+	//float mag = magnitude();
+	return powf(m_x, 2) + powf(m_y, 2);
 }
 
 void LibMath::Vector2::normalize(void)
@@ -247,6 +281,13 @@ LibMath::Vector3::Vector3(Vector3 const& other)
 	m_x = other.m_x;
 	m_y = other.m_y;
 	m_z = other.m_z;
+}
+
+LibMath::Vector3::Vector3(LibMath::Geometry3D::Point const& point)
+{
+	m_x = point.m_x;
+	m_y = point.m_y;
+	m_z = point.m_z;
 }
 
 LibMath::Vector3 LibMath::Vector3::zero(void)
@@ -429,6 +470,11 @@ void LibMath::Vector3::normalize(void)
 
 	// Avoid division by zero
 
+	if (mag == 0.f)
+	{
+		throw(std::invalid_argument("Error: Can not normalize vector of Magnitude zero"));
+	}
+
 	if (mag == 1)
 	{
 		return;
@@ -465,60 +511,79 @@ void LibMath::Vector3::reflectOnto(Vector3 const& vec)
 	m_z = m_z - 2 * dot_p * normalized_vec.m_z; 
 }
 
+// Ajoutez ces fonctions à votre classe Vector3
+
+void LibMath::Vector3::rotateX(Radian angle)
+{
+	float c = cos(angle);
+	float s = sin(angle);
+
+	float newY = c * m_y - s * m_z;
+	float newZ = s * m_y + c * m_z;
+
+	m_y = newY;
+	m_z = newZ;
+}
+
+void LibMath::Vector3::rotateY(Radian angle)
+{
+	float c = cos(angle);
+	float s = sin(angle);
+
+	float newX = c * m_x + s * m_z;
+	float newZ = -s * m_x + c * m_z;
+
+	m_x = newX;
+	m_z = newZ;
+}
+
+void LibMath::Vector3::rotateZ(Radian angle)
+{
+	float c = cos(angle);
+	float s = sin(angle);
+
+	float newX = c * m_x - s * m_y;
+	float newY = s * m_x + c * m_y;
+
+	m_x = newX;
+	m_y = newY;
+}
+
 void LibMath::Vector3::rotate(Radian rad_x, Radian rad_y, Radian rad_z)
 {
-	float cosYaw = cos(rad_z);
-	float sinYaw = sin(rad_z);
-	float cosPitch = cos(rad_x);
-	float sinPitch = sin(rad_x);
-	float cosRoll = cos(rad_y);
-	float sinRoll = sin(rad_y);
+	// GLM utilise yawPitchRoll(angles.z, angles.x, angles.y)
+	// avec une matrice en column-major
+	float yaw = rad_z.raw();    // angles.z
+	float pitch = rad_x.raw();  // angles.x
+	float roll = rad_y.raw();   // angles.y
 
-	LibMath::Matrix3Dx3 result;
-	result[0][0] = cosYaw * cosRoll - sinYaw * sinPitch * sinRoll;
-	result[1][0] = cosPitch * sinRoll;
-	result[2][0] = -sinYaw * cosRoll + cosYaw * sinPitch * sinRoll;
-	result[0][1] = -cosYaw * sinRoll + sinYaw * sinPitch * cosRoll;
-	result[1][1] = cosPitch * cosRoll;
-	result[2][1] = -sinYaw * sinRoll + cosYaw * sinPitch * cosRoll;
-	result[0][2] = sinYaw * cosPitch;
-	result[1][2] = -sinPitch;
-	result[2][2] = cosYaw * cosPitch;
+	// Calcul des cosinus et sinus
+	float ch = std::cos(yaw);   // cos(yaw)
+	float sh = std::sin(yaw);   // sin(yaw)
+	float cp = std::cos(pitch); // cos(pitch)
+	float sp = std::sin(pitch); // sin(pitch)
+	float cb = std::cos(roll);  // cos(roll)
+	float sb = std::sin(roll);  // sin(roll)
 
-	// Apply the rotation to the vector
-	*this = result * (*this);
+	// Matrice de rotation yawPitchRoll de GLM (column-major)
+	float m00 = ch * cb + sh * sp * sb;
+	float m01 = sb * cp;
+	float m02 = -sh * cb + ch * sp * sb;
+	float m10 = -ch * sb + sh * sp * cb;
+	float m11 = cb * cp;
+	float m12 = sb * sh + ch * sp * cb;
+	float m20 = sh * cp;
+	float m21 = -sp;
+	float m22 = ch * cp;
 
+	// Application de la matrice au vecteur (column-major)
+	float x = m_x;
+	float y = m_y;
+	float z = m_z;
 
-	//// compute sin and cosin of each angle
-	//float cosAlpha = LibMath::cos(rad_x);
-	//float sinAlpha = LibMath::sin(rad_x);
-
-	//float cosTheta = LibMath::cos(rad_y);
-	//float sinTheta = LibMath::sin(rad_y);
-
-	//float cosBeta = LibMath::cos(rad_z);
-	//float sinBeta = LibMath::sin(rad_z);
-
-	//// compute rotation on Z-axis
-	//float rZx = m_x * cosBeta - m_y * sinBeta;
-	//float rZy = m_x * sinBeta + m_y * cosBeta;
-	//float rZz = m_z;
-
-	//// compute rotation on X-axis
-	//float rXx = rZx;
-	//float rXy = rZy * cosAlpha - rZz * sinAlpha;
-	//float rXz = rZy * sinAlpha + rZz * cosAlpha;
-
-	//// compute rotation on Y-axis
-	//float rYx = rXx * cosTheta + rXz * sinTheta;
-	//float rYy = rXy;
-	//float rYz = -rXx * sinTheta + rXz * cosTheta;
-
-	//m_x = rYx;
-	//m_y = rYy;
-	//m_z = rYz;
-
-
+	m_x = (m00 * x + m10 * y + m20 * z);  // Colonne 0
+	m_y = (m01 * x + m11 * y + m21 * z);  // Colonne 1
+	m_z = (m02 * x + m12 * y + m22 * z);  // Colonne 2
 }
 
 void LibMath::Vector3::rotate(Radian angle, Vector3 const& vec)
@@ -567,9 +632,9 @@ LibMath::Vector3 LibMath::rotateArroundAxis(Vector3 const& vector, Vector3 const
 	float oneMinusCosTheta = 1 - cosTheta;
 
 	// Extract axis components
-	float x = normalizedAxis.getX();
-	float y = normalizedAxis.getY();
-	float z = normalizedAxis.getZ();
+	float x = normalizedAxis.m_x;
+	float y = normalizedAxis.m_y;
+	float z = normalizedAxis.m_z;
 
 	// Compute the rotation matrix elements
 	float r11 = cosTheta + x * x * oneMinusCosTheta;
@@ -585,9 +650,9 @@ LibMath::Vector3 LibMath::rotateArroundAxis(Vector3 const& vector, Vector3 const
 	float r33 = cosTheta + z * z * oneMinusCosTheta;
 
 	// Apply the rotation matrix to the vector
-	float newX = vector.getX() * r11 + vector.getY() * r12 + vector.getZ() * r13;
-	float newY = vector.getX() * r21 + vector.getY() * r22 + vector.getZ() * r23;
-	float newZ = vector.getX() * r31 + vector.getY() * r32 + vector.getZ() * r33;
+	float newX = vector.m_x * r11 + vector.m_y * r12 + vector.m_z * r13;
+	float newY = vector.m_x * r21 + vector.m_y * r22 + vector.m_z * r23;
+	float newZ = vector.m_x * r31 + vector.m_y * r32 + vector.m_z * r33;
 
 	return { newX, newY, newZ };
 }
@@ -612,103 +677,131 @@ std::string LibMath::formatNumber(float value)
 bool LibMath::operator==(Vector3 const& vec1, Vector3 const& vec2)
 {
 	
-	return (vec1.getX() == vec2.getX() && vec1.getY() == vec2.getY() && vec1.getZ() == vec2.getZ());
+	return (vec1.m_x == vec2.m_x && vec1.m_y == vec2.m_y && vec1.m_z == vec2.m_z);
 }
 
 bool LibMath::operator!=(Vector3 const& vec1, Vector3 const& vec2)
 {
-	return (vec1.getX() != vec2.getX() || vec1.getY() != vec2.getY() || vec1.getZ() != vec2.getZ());
+	return (vec1.m_x != vec2.m_x || vec1.m_y != vec2.m_y || vec1.m_z != vec2.m_z);
 }
 
 LibMath::Vector3 LibMath::operator-(Vector3 vec)
 {
-	return Vector3(-vec.getX(), -vec.getY(), -vec.getZ());
+	return Vector3(-vec.m_x, -vec.m_y, -vec.m_z);
 }
 
 LibMath::Vector3 LibMath::operator+(Vector3 vec1, Vector3 const& vec2)
 {
-	return Vector3(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY(), vec1.getZ() + vec2.getZ());
+	return Vector3(vec1.m_x + vec2.m_x, vec1.m_y + vec2.m_y, vec1.m_z + vec2.m_z);
 }
 
 LibMath::Vector3 LibMath::operator-(Vector3 vec1, Vector3 const& vec2)
 {
-	return Vector3(vec1.getX() - vec2.getX(), vec1.getY() - vec2.getY(), vec1.getZ() - vec2.getZ());
+	return Vector3(vec1.m_x - vec2.m_x, vec1.m_y - vec2.m_y, vec1.m_z - vec2.m_z);
 }
 
 LibMath::Vector3 LibMath::operator*(Vector3 vec1, Vector3 const& vec2)
 {
-	return Vector3(vec1.getX() * vec2.getX(), vec1.getY() * vec2.getY(), vec1.getZ() * vec2.getZ());
+	return Vector3(vec1.m_x * vec2.m_x, vec1.m_y * vec2.m_y, vec1.m_z * vec2.m_z);
 }
 
 LibMath::Vector3 LibMath::operator*(Vector3 vec, float val)
 {
-	return Vector3(vec.getX() * val, vec.getY() * val, vec.getZ() * val);
+	return Vector3(vec.m_x * val, vec.m_y * val, vec.m_z * val);
 }
 
 LibMath::Vector3 LibMath::operator/(Vector3 vec1, Vector3 const& vec2)
 {
-	return Vector3(vec1.getX() / vec2.getX(), vec1.getY() /vec2.getY(), vec1.getZ() / vec2.getZ());
+	return Vector3(vec1.m_x / vec2.m_x, vec1.m_y /vec2.m_y, vec1.m_z / vec2.m_z);
+}
+
+LibMath::Vector3 LibMath::operator/(Vector3 vec, float val)
+{
+	if (val == 0)
+	{
+		throw(std::invalid_argument("Division by zero"));
+	}
+	return Vector3(vec.m_x / val, vec.m_y / val, vec.m_z /val );
 }
 
 LibMath::Vector3& LibMath::operator+=(Vector3& vec1, Vector3 const& vec2)
 {
-	vec1.getX() += vec2.getX();
-	vec1.getY() += vec2.getY();
-	vec1.getZ() += vec2.getZ();
+	vec1.m_x += vec2.m_x;
+	vec1.m_y += vec2.m_y;
+	vec1.m_z += vec2.m_z;
 
 	return vec1;
 }
 
 LibMath::Vector3& LibMath::operator-=(Vector3& vec1, Vector3 const& vec2)
 {
-	vec1.getX() -= vec2.getX();
-	vec1.getY() -= vec2.getY();
-	vec1.getZ() -= vec2.getZ();
+	vec1.m_x -= vec2.m_x;
+	vec1.m_y -= vec2.m_y;
+	vec1.m_z -= vec2.m_z;
 
 	return vec1;
 }
 
 LibMath::Vector3& LibMath::operator*=(Vector3& vec1, Vector3 const& vec2)
 {
-	vec1.getX() *= vec2.getX();
-	vec1.getY() *= vec2.getY();
-	vec1.getZ() *= vec2.getZ();
+	vec1.m_x *= vec2.m_x;
+	vec1.m_y *= vec2.m_y;
+	vec1.m_z *= vec2.m_z;
 
 	return vec1;
 }
 
 LibMath::Vector3& LibMath::operator*=(Vector3& vec, float val)
 {
-	vec.getX() *= val;
-	vec.getY() *= val;
-	vec.getZ() *= val;
+	vec.m_x *= val;
+	vec.m_y *= val;
+	vec.m_z *= val;
 
 	return vec;
 }
 
 LibMath::Vector3& LibMath::operator/=(Vector3& vec1, Vector3 const& vec2)
 {
-	vec1.getX() /= vec2.getX();
-	vec1.getY() /= vec2.getY();
-	vec1.getZ() /= vec2.getZ();
+	if (vec2.m_x == 0.f || vec2.m_y == 0.f || vec2.m_z == 0.f)
+	{
+		throw std::runtime_error("Error: Division by zero. \n x, y or z component is zero");
+	}
+
+	vec1.m_x /= vec2.m_x;
+	vec1.m_y /= vec2.m_y;
+	vec1.m_z /= vec2.m_z;
 
 	return vec1;
 }
 
+LibMath::Vector3& LibMath::operator/=(Vector3& vec, float val)
+{
+	if (val == 0.f)
+	{
+		throw std::runtime_error("Error: Division by zero");
+	}
+
+	vec.m_x /= val;
+	vec.m_y /= val;
+	vec.m_z /= val;
+
+	return vec;
+}
+
 std::ostream& LibMath::operator<<(std::ostream& os, Vector3 const& vec)
 {
-	return os << "{" << vec.getX() << "," << vec.getY() << "," << vec.getZ() << "}";
+	return os << "{" << vec.m_x << "," << vec.m_y << "," << vec.m_z << "}";
 }
 
 std::istream& LibMath::operator>>(std::istream& is, Vector3& vec)
 {
 	char c;
 	is >> c;
-	is >> vec.getX();
+	is >> vec.m_x;
 	is >> c;
-	is >> vec.getY();
+	is >> vec.m_y;
 	is >> c;
-	is >> vec.getZ();
+	is >> vec.m_z;
 	is >> c;
 
 	return is;
@@ -740,6 +833,14 @@ LibMath::Vector4::Vector4(Vector4 const& other)
 	m_y = other.m_y;
 	m_z = other.m_z;
 	m_k = other.m_k;
+}
+
+LibMath::Vector4::Vector4(LibMath::Vector3 const& vec3, const float& val)
+{
+	m_x = vec3.m_x;
+	m_y = vec3.m_y;
+	m_z = vec3.m_z;
+	m_k = val;
 }
 
 float& LibMath::Vector4::operator[](int n)
@@ -817,19 +918,6 @@ float LibMath::Vector4::magnitude(void) const
 	return sqrtf(x + y + z + k);
 }
 
-void LibMath::Vector4::normalize(void)
-{
-	float mag = magnitude();
-	if (mag == 1)
-	{
-		return;
-	}
-	m_x /= mag;
-	m_y /= mag;
-	m_z /= mag;
-	m_k /= mag;
-}
-
 float LibMath::Vector4::magnitudeSquare(void) const
 {
 	float x = powf(m_x, 2.0f);
@@ -850,27 +938,27 @@ void LibMath::Vector4::homogenize(void)
 
 bool LibMath::operator==(Vector4 const& vec1, Vector4 const& vec2)
 {
-	return ((vec1.getX() == vec2.getX()) && (vec1.getY() == vec2.getY()) && (vec1.getZ() == vec2.getZ()) && (vec1.getK() == vec2.getK()));
+	return ((vec1.m_x == vec2.m_x) && (vec1.m_y == vec2.m_y) && (vec1.m_z == vec2.m_z) && (vec1.m_k == vec2.m_k));
 }
 
 LibMath::Vector4 LibMath::operator-(Vector4 vec)
 {
-	return Vector4(-vec.getX(), -vec.getY(), -vec.getZ(), -vec.getK());
+	return Vector4(-vec.m_x, -vec.m_y, -vec.m_z, -vec.m_k);
 }
 
 LibMath::Vector4 LibMath::operator+(Vector4 vec1, Vector4 vec2)
 {
-	return Vector4(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY(), vec1.getZ() + vec2.getZ(), vec1.getK() + vec2.getK());
+	return Vector4(vec1.m_x + vec2.m_x, vec1.m_y + vec2.m_y, vec1.m_z + vec2.m_z, vec1.m_k + vec2.m_k);
 }
 
 LibMath::Vector4 LibMath::operator-(Vector4 vec1, Vector4 vec2)
 {
-	return Vector4(vec1.getX() - vec2.getX(), vec1.getY() - vec2.getY(), vec1.getZ() - vec2.getZ(), vec1.getK() - vec2.getK());
+	return Vector4(vec1.m_x - vec2.m_x, vec1.m_y - vec2.m_y, vec1.m_z - vec2.m_z, vec1.m_k - vec2.m_k);
 }
 
 LibMath::Vector4 LibMath::operator*(Vector4 vec, float val)
 {
-	return Vector4(vec.getX() * val, vec.getY() * val, vec.getZ() * val, vec.getK() * val);
+	return Vector4(vec.m_x * val, vec.m_y * val, vec.m_z * val, vec.m_k * val);
 }
 
 LibMath::Vector4 LibMath::operator/(Vector4 vec, float val)
@@ -879,7 +967,7 @@ LibMath::Vector4 LibMath::operator/(Vector4 vec, float val)
 	{
 		throw(std::invalid_argument("Error: division by zero"));
 	}
-	return Vector4(vec.getX() / val, vec.getY() / val, vec.getZ() / val, vec.getK() / val);
+	return Vector4(vec.m_x / val, vec.m_y / val, vec.m_z / val, vec.m_k / val);
 }
 
 #pragma endregion

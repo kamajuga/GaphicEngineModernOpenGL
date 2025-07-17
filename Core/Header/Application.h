@@ -51,8 +51,15 @@ private:
 
 	float m_lastFrame = 0.0;
 
+	bool m_cursorMode = true;
+	bool m_altpressed_lastframe = false;
+
+	double m_lastXpos, m_lastYpos = 0;
+
 	Graph<SceneNode> m_graph;
 
+	void processCameraCursorMovement(void);
+	void processMouseInput(void);
 	void processInput(GLFWwindow* window, Camera& camera);
 
 	GLFWwindow* m_window = NULL;

@@ -322,7 +322,7 @@ int Application::windowLoop(void)
 		// input
 		glfwPollEvents();
 		processInput(m_window, m_camera);
-		CheckGLError("after processInput");
+		processMouseInput();
 
 		float now = static_cast<float>(glfwGetTime());
 		float deltaTime = now - m_lastFrame ;
@@ -395,28 +395,75 @@ void Application::processInput(GLFWwindow* window, Camera& camera)
 	if (glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.m_position -= camera.m_worldUp * velocity;
 
-	double xpos, ypos;
-	glfwGetCursorPos(m_window, &xpos, &ypos);
-	if (camera.m_firstMouse) {
-		camera.m_lastX = static_cast<float>(xpos);
-		camera.m_lastY = static_cast<float>(ypos);
-		camera.m_firstMouse = false;
+	if (glfwGetKey(m_window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && !m_altpressed_lastframe)
+	{
+		// Enable / Disable camera mouse movement
+		m_cursorMode = !m_cursorMode;
+
+		if (!m_cursorMode)
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else
+		{
+			// we set cursor back to previous position
+			glfwSetCursorPos(m_window, m_lastXpos, m_lastYpos);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		}
 	}
-	float xoffset = static_cast<float>(xpos) - camera.m_lastX;
-	float yoffset = camera.m_lastY - static_cast<float>(ypos);
-	camera.m_lastX = static_cast<float>(xpos);
-	camera.m_lastY = static_cast<float>(ypos);
 
-	xoffset *= camera.m_mouseSensitivity;
-	yoffset *= camera.m_mouseSensitivity;
+	if (m_cursorMode)
+	{
+		processCameraCursorMovement();
+	}
 
-	camera.m_yaw += LibMath::Degree(xoffset);
-	camera.m_pitch += LibMath::Degree(yoffset);
+	m_altpressed_lastframe = glfwGetKey(m_window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
 
 	camera.updateCameraVectors();
 	camera.m_viewMatrix = camera.lookAt(camera.m_position, camera.m_position + camera.m_front, camera.m_up);
 }
 
+
+void Application::processCameraCursorMovement(void)
+{
+	double xpos, ypos;
+	glfwGetCursorPos(m_window, &xpos, &ypos);
+
+	if (m_camera.m_firstMouse) {
+		m_camera.m_lastX = static_cast<float>(xpos);
+		m_camera.m_lastY = static_cast<float>(ypos);
+		m_camera.m_firstMouse = false;
+	}
+	float xoffset = static_cast<float>(xpos) - m_camera.m_lastX;
+	float yoffset = m_camera.m_lastY - static_cast<float>(ypos);
+	m_camera.m_lastX = static_cast<float>(xpos);
+	m_camera.m_lastY = static_cast<float>(ypos);
+
+	xoffset *= m_camera.m_mouseSensitivity;
+	yoffset *= m_camera.m_mouseSensitivity;
+
+	m_lastXpos = xpos;
+	m_lastYpos = ypos;
+
+	m_camera.m_yaw += LibMath::Degree(xoffset);
+	m_camera.m_pitch += LibMath::Degree(yoffset);
+
+}
+
+void Application::processMouseInput(void)
+{
+	if (!m_cursorMode)
+	{
+		if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		{
+			double xpos, ypos;
+			glfwGetCursorPos(m_window, &xpos, &ypos);
+
+			std::cout << "mouse pos clicked: " << xpos << ", " << ypos << std::endl;
+		}
+	}
+}
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 
