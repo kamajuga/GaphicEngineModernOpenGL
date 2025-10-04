@@ -13,7 +13,7 @@ void Light::uploadLightCountToGPU(GLuint shaderProgram, const std::string& unifo
 	glUniform1i(location, count);
 }
 
-DirectionalLight::DirectionalLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale)
+DirectionalLight::DirectionalLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale)
 {
 	m_transform = LibMath::Matrix4::createTransform(position, rotation, scale);
 	m_direction = LibMath::Vector3(0.0f, 0.0f, -1.0f); // Default direction
@@ -32,22 +32,22 @@ void DirectionalLight::uploadLightToGPU(GLuint shaderProgram, const std::string&
 
 	GLint dirLoc = glGetUniformLocation(shaderProgram, (uniformName + ".direction").c_str());
 	if (dirLoc != -1)
-		glUniform3f(dirLoc, direction.getX(), direction.getY(), direction.getZ());
+		glUniform3f(dirLoc, direction.m_x, direction.m_y, direction.m_z);
 
 	GLint ambLoc = glGetUniformLocation(shaderProgram, (uniformName + ".ambient").c_str());
 	if (ambLoc != -1)
-		glUniform4f(ambLoc, m_ambient.getX(), m_ambient.getY(), m_ambient.getZ(), m_ambient.getK());
+		glUniform4f(ambLoc, m_ambient.m_x, m_ambient.m_y, m_ambient.m_z, m_ambient.m_k);
 
 	GLuint diffLoc = glGetUniformLocation(shaderProgram, (uniformName + ".diffuse").c_str());
 	if (diffLoc != -1)
-		glUniform4f(diffLoc, m_diffuse.getX(), m_diffuse.getY(), m_diffuse.getZ(), m_diffuse.getK());
+		glUniform4f(diffLoc, m_diffuse.m_x, m_diffuse.m_y, m_diffuse.m_z, m_diffuse.m_k);
 
 	GLuint specLoc = glGetUniformLocation(shaderProgram, (uniformName + ".specular").c_str());
 	if (specLoc != -1)
-		glUniform4f(specLoc, m_specular.getX(), m_specular.getY(), m_specular.getZ(), m_specular.getK());
+		glUniform4f(specLoc, m_specular.m_x, m_specular.m_y, m_specular.m_z, m_specular.m_k);
 }
 
-PointLight::PointLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale)
+PointLight::PointLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale)
 {
 	m_transform = LibMath::Matrix4::createTransform(position, rotation, scale);
 	m_ambient = LibMath::Vector4(20.f, 20.1f, 10.f, 1.0f);
@@ -65,19 +65,19 @@ void PointLight::uploadLightToGPU(GLuint shaderProgram, const std::string& unifo
 
 	GLint loc = glGetUniformLocation(shaderProgram, (base + ".position").c_str());
 	if (loc != -1) 
-		glUniform3f(loc, position.getX(), position.getY(), position.getZ());
+		glUniform3f(loc, position.m_x, position.m_y, position.m_z);
 
 	loc = glGetUniformLocation(shaderProgram, (base + ".ambient").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_ambient.getX(), m_ambient.getY(), m_ambient.getZ(), m_ambient.getK());
+		glUniform4f(loc, m_ambient.m_x, m_ambient.m_y, m_ambient.m_z, m_ambient.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, (base + ".diffuse").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_diffuse.getX(), m_diffuse.getY(), m_diffuse.getZ(), m_diffuse.getK());
+		glUniform4f(loc, m_diffuse.m_x, m_diffuse.m_y, m_diffuse.m_z, m_diffuse.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, (base + ".specular").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_specular.getX(), m_specular.getY(), m_specular.getZ(), m_specular.getK());
+		glUniform4f(loc, m_specular.m_x, m_specular.m_y, m_specular.m_z, m_specular.m_k);
 
 	loc = glGetUniformLocation(shaderProgram, (base + ".constant").c_str());
 	if (loc != -1)
@@ -92,7 +92,7 @@ void PointLight::uploadLightToGPU(GLuint shaderProgram, const std::string& unifo
 		glUniform1f(loc, m_quadratic);
 }
 
-SpotLight::SpotLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale)
+SpotLight::SpotLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale)
 {
 	m_transform = LibMath::Matrix4::createTransform(position, rotation, scale);
 	m_position = position;
@@ -114,29 +114,29 @@ void SpotLight::uploadLightToGPU(GLuint shaderProgram, const std::string& unifor
 	LibMath::Vector4 position = m_transform * LibMath::Vector4(0, 0, 0, 1);
 	GLint loc = glGetUniformLocation(shaderProgram, (base + ".position").c_str());
 	if (loc != -1)
-		glUniform3f(loc, position.getX(), position.getY(), position.getZ());
+		glUniform3f(loc, position.m_x, position.m_y, position.m_z);
 
 	// World-space direction = transform * (0,0,-1,0)
 	LibMath::Vector4 direction = m_transform * LibMath::Vector4(0, 0, -1, 0);
 
 	loc = glGetUniformLocation(shaderProgram, (base + ".direction").c_str());
 	if (loc != -1)
-		glUniform3f(loc, direction.getX(), direction.getY(), direction.getZ());
+		glUniform3f(loc, direction.m_x, direction.m_y, direction.m_z);
 
 	// Ambient color
 	loc = glGetUniformLocation(shaderProgram, (base + ".ambient").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_ambient.getX(), m_ambient.getY(), m_ambient.getZ(), m_ambient.getK());
+		glUniform4f(loc, m_ambient.m_x, m_ambient.m_y, m_ambient.m_z, m_ambient.m_k);
 
 	// Diffuse color
 	loc = glGetUniformLocation(shaderProgram, (base + ".diffuse").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_diffuse.getX(), m_diffuse.getY(), m_diffuse.getZ(), m_diffuse.getK());
+		glUniform4f(loc, m_diffuse.m_x, m_diffuse.m_y, m_diffuse.m_z, m_diffuse.m_k);
 
 	// Specular color
 	loc = glGetUniformLocation(shaderProgram, (base + ".specular").c_str());
 	if (loc != -1)
-		glUniform4f(loc, m_specular.getX(), m_specular.getY(), m_specular.getZ(), m_specular.getK());
+		glUniform4f(loc, m_specular.m_x, m_specular.m_y, m_specular.m_z, m_specular.m_k);
 
 	// Attenuation - Constant
 	loc = glGetUniformLocation(shaderProgram, (base + ".constant").c_str());

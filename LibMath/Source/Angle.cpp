@@ -86,22 +86,22 @@ float LibMath::Degree::raw() const
 
 bool LibMath::operator==(Degree _deg1, Degree _deg2)
 {
-	// _deg2 = _deg1 + 360 * coef
-	float cpy_deg1 = _deg1.m_value;
-	float cpy_deg2 = _deg2.m_value;
+	// _deg2 = _deg1 + 360 * rotation_ratio 
+	float value1 = _deg1.m_value;
+	float value2 = _deg2.m_value;
 
-	if (cpy_deg1 > cpy_deg2)
+	if (value1 > value2)
 	{
-		float temp = cpy_deg1;
-		cpy_deg1 = cpy_deg2;
-		cpy_deg2 = temp;
+		float temp = value1;
+		value1 = value2;
+		value2 = temp;
 	}
 
-	float coef = (cpy_deg2 - cpy_deg1) / 360.f;
+	float rotation_ratio  = (value2 - value1) / 360.f;
 
-	float decimal_part = modf(coef, &coef);
+	float decimal_part = modf(rotation_ratio , &rotation_ratio );
 
-	return decimal_part == 0.0f;
+	return LibMath::almostEqual(decimal_part, 0);
 }
 
 bool LibMath::operator==(Degree _deg, float _val)
@@ -113,12 +113,7 @@ bool LibMath::operator==(Degree _deg, Radian const& _rad)
 {
 	float temp_rad = (_deg.m_value * static_cast<float>(M_PI)) / 180.f;
 
-	if (std::abs(_rad.raw() - temp_rad) < 0.01)
-	{
-		return true;
-	}
-
-	return false;
+	return LibMath::almostEqual(_rad.raw(), temp_rad);
 }
 
 LibMath::Degree LibMath::operator-(Degree _deg)
@@ -143,6 +138,11 @@ LibMath::Degree LibMath::operator*(Degree _deg, float _val)
 
 LibMath::Degree LibMath::operator/(Degree _deg, float _val)
 {
+	if (LibMath::almostEqual(_val, 0))
+	{
+		throw std::runtime_error("Division by zero");
+	}
+
 	return Degree(_deg.m_value / _val);
 }
 
@@ -240,21 +240,21 @@ float LibMath::Radian::raw() const
 
 bool LibMath::operator==(Radian _rad1, Radian _rad2)
 {
-	float cpy_rad1 = _rad1.m_value;
-	float cpy_rad2 = _rad2.m_value;
+	float value1 = _rad1.m_value;
+	float value2 = _rad2.m_value;
 
-	if (cpy_rad1 > cpy_rad2)
+	if (value1 > value2)
 	{
-		float temp = cpy_rad1;
-		cpy_rad1 = cpy_rad2;
-		cpy_rad2 = temp;
+		float temp = value1;
+		value1 = value2;
+		value2 = temp;
 	}
 
-	float coef = (cpy_rad2 - cpy_rad1) / static_cast<float>(2 * M_PI);
+	float rotation_ratio  = (value2 - value1) / static_cast<float>(2 * M_PI);
 
-	float decimal_part = modf(coef, &coef);
+	float decimal_part = modf(rotation_ratio , &rotation_ratio );
 
-	return decimal_part <= 0.000001f;
+	return LibMath::almostEqual(decimal_part, 0);
 }
 
 bool LibMath::operator==(Radian _rad, float _val)
@@ -266,11 +266,7 @@ bool LibMath::operator==(Radian _rad, Degree const& _deg)
 {
 	float temp_deg = (_rad.m_value * 180.0f) / static_cast<float>(M_PI);
 
-	if (std::abs(_deg.raw() - temp_deg) < 0.001)
-	{
-		return true;
-	}
-	return false;
+	return LibMath::almostEqual(_deg.raw(), temp_deg);
 }
 
 LibMath::Radian LibMath::operator-(Radian _rad)
@@ -295,6 +291,10 @@ LibMath::Radian LibMath::operator*(Radian _rad1, float _val)
 
 LibMath::Radian LibMath::operator/(Radian _rad1, float _val)
 {
+	if (LibMath::almostEqual(_val, 0))
+	{
+		throw std::runtime_error("Division by zero");
+	}
 	return Radian(_rad1.m_value / _val);
 }
 

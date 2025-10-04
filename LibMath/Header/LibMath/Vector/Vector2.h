@@ -5,10 +5,11 @@
 #include "LibMath/Angle/Radian.h"
 #endif // !LIBMATH_ANGLE_RADIAN_H_
 
+#include "LibMath/GeometricObject2.h"
+#include "LibMath/LibMathFwd.h"
 
 namespace LibMath
 {
-	class Degree;
 	class Vector2
 	{
 	public:
@@ -16,13 +17,9 @@ namespace LibMath
 		explicit	Vector2(float val);
 					Vector2(float valx, float valy);
 					Vector2(Vector2 const& other);
+					Vector2(Geometry2D::Point const& point);
 					~Vector2() = default;
-		
-		float		getX(void) const { return m_x; };
-		float&		getX(void) { return m_x; }
-
-		float		getY(void) const { return m_x; };
-		float&		getY(void) { return m_y; }
+	
 		
 		float&		operator[](int n);
 		float		operator[](int n) const;
@@ -31,7 +28,9 @@ namespace LibMath
 		Vector2&	operator+=(const Vector2& other);
 		Vector2&	operator-=(const Vector2& other);
 		Vector2&	operator*=(const Vector2& other);
+		Vector2&	operator*=(const float& val);
 		Vector2&	operator/=(const Vector2& other);
+		Vector2&	operator/=(const float& val);
 
 		float		magnitude(void) const;
 		bool		isUnit(void) const;
@@ -51,9 +50,10 @@ namespace LibMath
 		friend		Vector2		operator/(Vector2 vec, float val);
 		friend		Vector2		operator/(Vector2 vec1, Vector2 vec2);
 
+		float m_x = 0.f;
+		float m_y = 0.f;
 	private:
-		float m_x;
-		float m_y;
+		
 		 
 	};
 

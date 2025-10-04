@@ -1,8 +1,0 @@
-#ifndef LIBMATH_INTERSECTION_H_
-#define LIBMATH_INTERSECTION_H_
-
-namespace LibMath
-{
-}
-
-#endif // !LIBMATH_INTERSECTION_H_

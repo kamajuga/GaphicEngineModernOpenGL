@@ -26,6 +26,11 @@ public:
 		m_modelMatrix = modelMatrix;
 	}
 
+	LibMath::Matrix4 getModelMatrix(void) const
+	{
+		return m_modelMatrix;
+	}
+	
 	void draw(Shader& shader, LibMath::Matrix4 VPMatrix);
 	
 	void uploadModelMatrixToGPU(GLuint shaderProgram, const std::string& uniformName);
@@ -34,6 +39,9 @@ public:
 	{
 		m_material.uploadMaterialToGPU(shaderProgram, uniformName);
 	}
+
+	std::vector<Vertex>& getModelVertices(void) { return m_model->getVertices(); };
+	std::vector<uint32_t>& getModelIndices(void) { return m_model->getIndices(); };
 
 	void SetMaterial(LibMath::Vector4 ambient, LibMath::Vector4 diffuse, LibMath::Vector4 specular, float shininess);
 

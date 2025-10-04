@@ -33,7 +33,7 @@ class DirectionalLight : public Light
 {
 public:
 	DirectionalLight() = default;
-	DirectionalLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale);
+	DirectionalLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale);
 	~DirectionalLight() = default;
 
 	LibMath::Vector3 m_direction;
@@ -47,7 +47,7 @@ class PointLight : public Light
 {
 public:
 	PointLight() = default;
-	PointLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale);
+	PointLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale);
 	~PointLight() = default;
 
 	LibMath::Vector3 m_position;
@@ -64,7 +64,7 @@ class SpotLight : public Light
 {
 public:
 	SpotLight() = default;
-	SpotLight(LibMath::Vector3& const position, LibMath::Radian& const rotation, LibMath::Vector3& const scale);
+	SpotLight(const LibMath::Vector3& position, const LibMath::Radian& rotation, const LibMath::Vector3& scale);
 	void update(float deltaTime);
 	~SpotLight() = default;
 
